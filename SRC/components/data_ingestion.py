@@ -1,12 +1,19 @@
 import os
 import sys
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from dataclasses import dataclass
 
 from SRC.exception import CustomException
 from SRC.logger import logging
 
+from SRC.components.data_transformation import DataTransformation
+from SRC.components.data_transformation import DataTransformationConfig
+from SRC.utils import save_object
+
+from SRC.components.model_trainer import ModelTrainerConfig
+from SRC.components.model_trainer import ModelTrainer
 
 @dataclass
 class DataIngestionConfig:
@@ -28,7 +35,7 @@ class DataIngestion:
             logging.info("Read the dataset as dataframe")
 
             # Create artifacts directory if not exists
-            os.makedirs(os.path.dirname(self.ingestion_config.train_data_path), exist_ok=True)
+            os.makedirs(os.path.dirname(self.ingestion_config.train_data_path),exist_ok=True)
 
             # Save raw data
             df.to_csv(self.ingestion_config.raw_data_path, index=False, header=True)
@@ -50,5 +57,12 @@ class DataIngestion:
 
 
 if(__name__=="__main__"):
+
     obj=DataIngestion()
-    obj.initiate_data_ingestion()
+    train_data,test_data=obj.initiate_data_ingestion()
+    
+    data_transformation=DataTransformation()
+    train_arr,test_arr,preprocessor_path=data_transformation.initiate_data_transformation(train_data,test_data)
+
+    modeltrainer=ModelTrainer()
+    print(modeltrainer.initiate_model_trainer(train_arr,test_arr))
